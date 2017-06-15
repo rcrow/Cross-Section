@@ -133,7 +133,7 @@ def plotAzimuth(azi, thetaXS, apparentInclination):
 def apparentPlunge(azi, inc, thetaXS):
     try:
         obliquity = obliq(azi, thetaXS)
-        appInc = math.degrees(math.atan(float(ve) * math.tan(math.radians(inc)) * math.cos(math.radians(obliquity))))
+        appInc = math.degrees(math.atan(float(ve) * math.tan(math.radians(inc)) * math.sin(math.radians(obliquity))))
         return appInc, obliquity
     except:
         tb = sys.exc_info()[2]
