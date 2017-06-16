@@ -133,15 +133,15 @@ def plotAzimuth(azi, thetaXS, apparentInclination):
 def apparentPlunge(azi, inc, thetaXS):
     try:
         obliquity = obliq(azi, thetaXS)
-        appInc = math.degrees(math.atan(float(ve) * math.tan(math.radians(inc)) * math.sin(math.radians(obliquity))))
-        return appInc, obliquity
+        appDip = math.degrees(math.atan(math.tan(math.radians(inc)) * math.sin(math.radians(obliquity))))
+        ExagDip = math.degrees(math.atan(float(ve)*math.tan(math.radians(appDip))))
+        return appDip, ExagDip, obliquity
     except:
         tb = sys.exc_info()[2]
         tbinfo = traceback.format_tb(tb)[0]
         pymsg = tbinfo + '\n' + str(sys.exc_type)+ ': ' + str(sys.exc_value)
         arcpy.AddError(pymsg)
         raise SystemError        
-
 
 # PARAMETERS
 # ***************************************************************
@@ -310,6 +310,7 @@ try:
     if not strikeField == '':
         isOrientationData = True
         arcpy.AddField_management(eventPts,'ApparentInclination','FLOAT')
+        arcpy.AddField_management(eventPts, 'ExagAppInclination', 'FLOAT')
         arcpy.AddField_management(eventPts,'Obliquity','FLOAT')
         arcpy.AddField_management(eventPts,'PlotAzimuth','FLOAT')
     else:
@@ -331,7 +332,7 @@ try:
         arcpy.AddMessage("is Orientation Data") 
         fldList = ["OBJECTID", "SHAPE@M", zField, "SHAPE@XY", "LOC_ANGLE", "LocalCSAzimuth", 
                                      "DistanceFromSection", "Distance", strikeField, dipField,"Obliquity", 
-                                     "ApparentInclination", "PlotAzimuth"]
+                                     "ApparentInclination", "ExagAppInclination", "PlotAzimuth"]
     else:
         arcpy.AddMessage("is not Orientation Data")
         fldList = ["OBJECTID", "SHAPE@M", zField, "SHAPE@XY", "LOC_ANGLE", "LocalCSAzimuth", 
@@ -370,11 +371,12 @@ try:
         #   use this field calculation
         #   !strike! + 90 if ((!strike! + 90) < 360) else (!strike! + 90) - 360
         if isOrientationData == True:
-            appInc, oblique = apparentPlunge(row[8], row[9], csAzi)
-            plotAzi = plotAzimuth(row[8], csAzi, appInc)
-            row[10] = round(oblique, 2)   #Obliquity
-            row[11] = round(appInc, 2)    #ApparentInclination
-            row[12] = round(plotAzi, 2)   #PlotAzimuth
+            appDip, ExagDip, obliquity = apparentPlunge(row[8], row[9], csAzi)
+            plotAzi = plotAzimuth(row[8], csAzi, ExagDip)
+            row[10] = round(obliquity, 2)   #Obliquity
+            row[11] = round(appDip, 2)    #ApparentInclination
+            row[12] = round(ExagDip, 2)    #ExageratedApparentInclination
+            row[13] = round(plotAzi, 2)   #PlotAzimuth
         rows.updateRow(row)
     
     #some cleanup
